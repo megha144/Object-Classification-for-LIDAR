@@ -1,0 +1,49 @@
+/** Template for node using PCL in C++
+  * 1. Modify TOPIC_NAME (/iv_points, /template_pcl_output)
+  * 2. Include other *.h files if necessary
+  * 3. Add your own function code
+  */
+
+#include "object_classification_core.h"
+
+ObjectClassification::ObjectClassification(ros::NodeHandle& nh)
+{   //publish the message to the certain topic，10 means the length of the buffer   
+    obj_class_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/template_pcl_output", 10);
+    //subscribe the message from certain topic，10 means the length of the buffer
+    //obj_class_sub_ = nh.subscribe("/iv_points", 10, &ObjectClassification::sub_cb, this);
+    obj_class_sub_bbox_ = nh.subscribe<jsk_recognition_msgs::BoundingBoxArray>("/detected_bounding_boxs", 10, &ObjectClassification::sub_cb_bbox, this);         
+    ros::spin(); // call sub_cb
+}
+
+ObjectClassification::~ObjectClassification()
+{}
+
+void ObjectClassification::Spin()
+{}
+
+void ObjectClassification::sub_cb(const sensor_msgs::PointCloud2ConstPtr&in_cloud_ptr){
+    pcl::PointCloud<pcl::PointXYZI>::Ptr input_pcl_ptr(new pcl::PointCloud<pcl::PointXYZI>);
+    pcl::PointCloud<pcl::PointXYZI>::Ptr output_pcl_ptr(new pcl::PointCloud<pcl::PointXYZI>); 
+    pcl::fromROSMsg(*in_cloud_ptr, *input_pcl_ptr);
+
+
+// below is the voxel_grid code to downsample, change it with your own function
+    pcl::VoxelGrid<pcl::PointXYZI> vg;
+    vg.setInputCloud(input_pcl_ptr);
+    vg.setLeafSize(1.0f, 1.0f, 1.0f);
+    vg.filter(*output_pcl_ptr);
+//
+
+    sensor_msgs::PointCloud2 pcl_msg;
+    pcl::toROSMsg(*output_pcl_ptr, pcl_msg);
+    pcl_msg.header = in_cloud_ptr->header;
+    obj_class_pub_.publish(pcl_msg);
+}
+void ObjectClassification::sub_cb_bbox(const jsk_recognition_msgs::BoundingBoxArrayConstPtr&in_cloud_ptr){
+
+    jsk_recognition_msgs::BoundingBoxArray box_array;
+    //obj_class_pub_.publish(box_array);
+
+    
+}
+

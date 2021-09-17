@@ -1,0 +1,9 @@
+
+<launch>
+    <node 
+    pkg="object_classification_innovusion" 
+    type="object_classification_innovusion_node" 
+    name="object_classification_innovusion" 
+    output="screen"/>
+
+</launch>
